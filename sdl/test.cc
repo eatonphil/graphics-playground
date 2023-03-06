@@ -1,7 +1,5 @@
-// SDL2 Hello, World!
-// This should display a white screen for 2 seconds
-// compile with: clang++ main.cpp -o hello_sdl2 -lSDL2
-// run with: ./hello_sdl2
+// SOURCE: https://gist.github.com/fschr/92958222e35a823e738bb181fe045274
+
 #include <SDL.h>
 #include <stdio.h>
 
@@ -12,7 +10,7 @@ int main(int argc, char* args[]) {
   SDL_Window* window = NULL;
   SDL_Surface* screenSurface = NULL;
 
-  // Catches all 
+  // Stop SDL from capturing signals (i.e. so `Ctrl-c` works)
   SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "no");
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -20,13 +18,13 @@ int main(int argc, char* args[]) {
     return 1;
   }
   window = SDL_CreateWindow(
-			    "hello_sdl2",
+			    "Hello!",
 			    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 			    SCREEN_WIDTH, SCREEN_HEIGHT,
 			    SDL_WINDOW_SHOWN
 			    );
   if (window == NULL) {
-    fprintf(stderr, "could not create window: %s\n", SDL_GetError());
+    fprintf(stderr, "Could not create window: %s\n", SDL_GetError());
     return 1;
   }
   screenSurface = SDL_GetWindowSurface(window);
