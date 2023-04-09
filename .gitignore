@@ -5,3 +5,5 @@ test3
 .o
 sdl/SDL
 *.o
+*~
+*.zip
