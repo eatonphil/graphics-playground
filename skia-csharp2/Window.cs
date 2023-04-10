@@ -19,7 +19,6 @@ namespace Skia_OpenTK
 	SKCanvas canvas;
         GRBackendRenderTarget renderTarget;
         SKPaint TestBrush;
-
 	int Width, Height;
 
         public Window(string title, int width, int height) : base(new GameWindowSettings {
@@ -28,13 +27,16 @@ namespace Skia_OpenTK
         },
         new NativeWindowSettings {
             Title = title,
+            Flags = ContextFlags.ForwardCompatible | ContextFlags.Debug,
+            Profile = ContextProfile.Core,
+            StartFocused = true,
             WindowBorder = WindowBorder.Resizable,
             Size = new Vector2i(width, height)
         })
         {
-            VSync = VSyncMode.Off;
-	    Width = width;
 	    Height = height;
+	    Width = width;
+            VSync = VSyncMode.Off;
         }
 
         protected override void OnLoad()
@@ -52,7 +54,7 @@ namespace Skia_OpenTK
 		TextAlign = SKTextAlign.Center,
 		TextSize = 24
 	    };
-
+            
         }
 
         protected override void OnUnload()
@@ -65,16 +67,17 @@ namespace Skia_OpenTK
             base.OnUnload();
         }
 
-	protected override void OnResize(ResizeEventArgs e) {
-	    Width = e.Width;
-	    Height = e.Height;
+	protected override void OnResize(ResizeEventArgs args) {
+	    base.OnResize(args);
+	    Width = args.Width;
+	    Height = args.Height;
 	    grContext.ResetContext(GRBackendState.None);
 	}
 
         double time = 0;
         protected override void OnRenderFrame(FrameEventArgs args)
         {
-	    renderTarget = new GRBackendRenderTarget(Width, Height, 0, 8, new GRGlFramebufferInfo(0, (uint)SizedInternalFormat.Rgba8));
+	    renderTarget = new GRBackendRenderTarget(ClientSize.X, ClientSize.Y, 0, 8, new GRGlFramebufferInfo(0, (uint)SizedInternalFormat.Rgba8));
             surface = SKSurface.Create(grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
             canvas = surface.Canvas;
 
@@ -86,7 +89,7 @@ namespace Skia_OpenTK
 
             TestBrush.Color = SKColors.Black;
             canvas.DrawText("Hello, World!", 128, 300, TestBrush);
-
+            
             canvas.Flush();
             SwapBuffers();
         }

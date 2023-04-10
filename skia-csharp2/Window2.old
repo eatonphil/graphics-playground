@@ -1,100 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using OpenTK;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Graphics.OpenGL4;
-
 using SkiaSharp;
 
 namespace Skia_OpenTK
 {
     public class Window : GameWindow
     {
-        GRContext grContext;
-        SKSurface surface;
+	GRGlInterface grgInterface;
+	GRContext grContext;
+	SKSurface surface;
+	SKCanvas canvas;
+        GRBackendRenderTarget renderTarget;
         SKPaint TestBrush;
 
-	private int WindowWidth = 1280, WindowHeight = 720;
+	int Width, Height;
 
-        public Window(string title, int width, int height) : base(new GameWindowSettings
-        {
+        public Window(string title, int width, int height) : base(new GameWindowSettings {
             IsMultiThreaded = false,
             RenderFrequency = 60.0
         },
-        new NativeWindowSettings
-        {
+        new NativeWindowSettings {
             Title = title,
-	    WindowBorder = WindowBorder.Resizable,
-	    Size = new OpenTK.Mathematics.Vector2i(width, height),
+            WindowBorder = WindowBorder.Resizable,
+            Size = new Vector2i(width, height)
         })
         {
             VSync = VSyncMode.Off;
-	    WindowWidth = width;
-	    WindowHeight = height;
+	    Width = width;
+	    Height = height;
         }
-
-	private void SkiaInit() {
-	    grContext = GRContext.CreateGl();
-	    SkiaResize(WindowWidth, WindowHeight);
-	}
 
         protected override void OnLoad()
         {
             base.OnLoad();
-	    SkiaInit();
+            //Context.MakeCurrent();
+            grgInterface = GRGlInterface.Create();
+	    grContext = GRContext.CreateGl(grgInterface);
 
             TestBrush = new SKPaint
-            {
-                Color = SKColors.White,
-                IsAntialias = true,
-                Style = SKPaintStyle.Fill,
-                TextAlign = SKTextAlign.Center,
-                TextSize = 25
-            };
+	    {
+		Color = SKColors.White,
+		IsAntialias = true,
+		Style = SKPaintStyle.Fill,
+		TextAlign = SKTextAlign.Center,
+		TextSize = 24
+	    };
+
         }
-
-	private void SkiaResize(int w, int h) {
-	    Console.WriteLine("W: {0}, H: {1}", WindowWidth, WindowHeight);
-	    WindowWidth = w;
-	    WindowHeight = h;
-
-	    if (grContext == null) SkiaInit();
-
-            GRGlFramebufferInfo fbi = new GRGlFramebufferInfo(0, (uint)InternalFormat.Rgba8);
-            var ctype = SKColorType.Rgba8888;
-            var beTarget = new GRBackendRenderTarget(w, h, 0, 0, fbi);
-
-            // Dispose Previous Surface
-            surface?.Dispose();
-            surface = SKSurface.Create(grContext, beTarget, GRSurfaceOrigin.BottomLeft, ctype, null, null);
-            if (surface == null)
-            {
-                Close();
-            }
-	}
 
         protected override void OnUnload()
         {
             TestBrush.Dispose();
             surface.Dispose();
+            renderTarget.Dispose();
             grContext.Dispose();
+            grgInterface.Dispose();
             base.OnUnload();
         }
 
 	protected override void OnResize(ResizeEventArgs e) {
-	    SkiaResize(e.Width, e.Height);
-	    base.OnResize(e);
+	    Width = e.Width;
+	    Height = e.Height;
+	    grContext.ResetContext(GRBackendState.None);
 	}
 
         double time = 0;
         protected override void OnRenderFrame(FrameEventArgs args)
         {
-	    var canvas = surface.Canvas;
-	    time += args.Time;
+	    renderTarget = new GRBackendRenderTarget(Width, Height, 0, 8, new GRGlFramebufferInfo(0, (uint)SizedInternalFormat.Rgba8));
+            surface = SKSurface.Create(grContext, renderTarget, GRSurfaceOrigin.BottomLeft, SKColorType.Rgba8888);
+            canvas = surface.Canvas;
+
+            time += args.Time;
             canvas.Clear(SKColors.CornflowerBlue);
 
             TestBrush.Color = SKColors.White;
             canvas.DrawRoundRect(new SKRoundRect(new SKRect(0, 0, 256, 256), (float)Math.Max(Math.Sin(-time) * 128.0f, 0)), TestBrush);
-
-	    canvas.DrawRoundRect(new SKRoundRect(new SKRect(0, 0, 256, 512), (float)Math.Max(Math.Sin(-time) * 128.0f, 0)), TestBrush);
 
             TestBrush.Color = SKColors.Black;
             canvas.DrawText("Hello, World!", 128, 300, TestBrush);

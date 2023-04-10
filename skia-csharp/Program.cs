@@ -52,15 +52,16 @@ namespace SkiaGame.App
         protected override void OnLoad()
         {
             base.OnLoad();
-            SkiaInit();
+	    skiaCtx = GRContext.CreateGl();
 
 	    text = new StringBuilder();
         }
 
         protected override void OnResize(ResizeEventArgs e)
         {
-            SkiaResize(e.Width, e.Height);
-            base.OnResize(e);
+	    base.OnResize(e);
+            WindowWidth = e.Width;
+            WindowHeight = e.Height;
 	    skiaCtx.ResetContext(GRBackendState.None);
         }
 
@@ -70,11 +71,9 @@ namespace SkiaGame.App
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
-            if (skiaCtx == null) SkiaInit();
-
             GRGlFramebufferInfo fbi = new GRGlFramebufferInfo(0, (uint)InternalFormat.Rgba8);
             var ctype = SKColorType.Rgba8888;
-            var beTarget = new GRBackendRenderTarget(WindowWidth, WindowHeight, 0, 0, fbi);
+            var beTarget = new GRBackendRenderTarget(ClientSize.X, ClientSize.Y, 0, 0, fbi);
 
             // Dispose Previous Surface
             skSurface?.Dispose();
@@ -91,23 +90,10 @@ namespace SkiaGame.App
         GRContext? skiaCtx = null;
         SKSurface? skSurface = null;
 
-        private void SkiaInit()
-        {
-            skiaCtx = GRContext.CreateGl();
-            SkiaResize(WindowWidth, WindowHeight);
-        }
-
         private void SkiaCleanUp()
         {
             skiaCtx?.Dispose();
             skSurface?.Dispose();
-        }
-
-        private void SkiaResize(int w, int h)
-        {
-            GL.Viewport(0, 0, WindowWidth, WindowHeight);
-            WindowWidth = w;
-            WindowHeight = h;
         }
 
         protected override void OnUnload()
