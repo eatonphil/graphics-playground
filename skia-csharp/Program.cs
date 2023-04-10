@@ -1,4 +1,6 @@
-﻿using OpenTK.Windowing.Desktop;
+﻿using System.Text;
+
+using OpenTK.Windowing.Desktop;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -31,6 +33,7 @@ namespace SkiaGame.App
                 retval.WindowState = WindowState.Maximized;
                 retval.Location = area.Min;
                 retval.Size = area.Size;
+		//retval.Size = new OpenTK.Mathematics.Vector2i(400, 100);
             }
 
             return retval;
@@ -45,20 +48,37 @@ namespace SkiaGame.App
             };
         }
 
+	StringBuilder text;
         protected override void OnLoad()
         {
             base.OnLoad();
             SkiaInit();
+
+	    text = new StringBuilder();
         }
 
         protected override void OnResize(ResizeEventArgs e)
         {
             SkiaResize(e.Width, e.Height);
             base.OnResize(e);
+	    skiaCtx.ResetContext(GRBackendState.None);
         }
+
+	protected override void OnTextInput(TextInputEventArgs args) {
+	    text.Append(args.AsString);
+	}
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
+            if (skiaCtx == null) SkiaInit();
+
+            GRGlFramebufferInfo fbi = new GRGlFramebufferInfo(0, (uint)InternalFormat.Rgba8);
+            var ctype = SKColorType.Rgba8888;
+            var beTarget = new GRBackendRenderTarget(WindowWidth, WindowHeight, 0, 0, fbi);
+
+            // Dispose Previous Surface
+            skSurface?.Dispose();
+            skSurface = SKSurface.Create(skiaCtx, beTarget, GRSurfaceOrigin.BottomLeft, ctype, null, null);
 
             if (KeyboardState.IsKeyDown(Keys.Escape))
             {
@@ -85,24 +105,9 @@ namespace SkiaGame.App
 
         private void SkiaResize(int w, int h)
         {
-	    Console.WriteLine("W: {0}, H: {1}", w, h);
             GL.Viewport(0, 0, WindowWidth, WindowHeight);
             WindowWidth = w;
             WindowHeight = h;
-
-            if (skiaCtx == null) SkiaInit();
-
-            GRGlFramebufferInfo fbi = new GRGlFramebufferInfo(0, (uint)InternalFormat.Rgba8);
-            var ctype = SKColorType.Rgba8888;
-            var beTarget = new GRBackendRenderTarget(w, h, 0, 0, fbi);
-
-            // Dispose Previous Surface
-            skSurface?.Dispose();
-            skSurface = SKSurface.Create(skiaCtx, beTarget, GRSurfaceOrigin.BottomLeft, ctype, null, null);
-            if (skSurface == null)
-            {
-                Close();
-            }
         }
 
         protected override void OnUnload()
@@ -120,12 +125,9 @@ namespace SkiaGame.App
             var paint = new SKPaint();
             paint.TextSize = 50;
             paint.Color = SKColors.Black;
-            paint.Typeface = SKTypeface.FromFamilyName(
-            "Arial",
-            SKFontStyleWeight.Bold,
-            SKFontStyleWidth.Normal,
-            SKFontStyleSlant.Italic);
-            ctx?.DrawText("Fancy text", 50, 50, paint);
+            paint.Typeface = SKTypeface.FromFamilyName("Arial");
+	    paint.IsAntialias = true;
+            ctx?.DrawText(text.ToString(), 50, 50, paint);
 
             skiaCtx?.Flush();
         }
@@ -137,6 +139,7 @@ namespace SkiaGame.App
                 try
                 {
                     prg.Run();
+		    //prg.CenterWindow();
                 }
                 catch (Exception e)
                 {

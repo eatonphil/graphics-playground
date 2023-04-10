@@ -1,16 +1,9 @@
-﻿using System;
-using System.Text;
-using OpenTK;
-using OpenTK.Platform;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.Common.Input;
+﻿using OpenTK.Windowing.Desktop;
 using OpenTK.Graphics.OpenGL;
-using SkiaSharp;
 using OpenTK.Windowing.Common;
-using OpenTK.Core.Native;
-using System.Diagnostics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using System.IO;
+
+using SkiaSharp;
 
 namespace SkiaGame.App
 {
@@ -18,10 +11,12 @@ namespace SkiaGame.App
     {
         private int WindowWidth = 1280, WindowHeight = 720;
 
-	 private SkiaGameWindow() : base(GetDefaultDWS(), GetDefaultNWS()){
+        private SkiaGameWindow() : base(GetDefaultDWS(), GetDefaultNWS())
+        {
         }
 
-        private static NativeWindowSettings GetDefaultNWS(){
+        private static NativeWindowSettings GetDefaultNWS()
+        {
             var retval = new NativeWindowSettings
             {
                 WindowBorder = WindowBorder.Resizable,
@@ -29,8 +24,9 @@ namespace SkiaGame.App
                 Title = "SkiaSharp Game Window"
             };
 
-            if(Monitors.GetMonitors().Count > 0){
-		MonitorInfo info = Monitors.GetMonitors()[0];
+            if (Monitors.GetMonitors().Count > 0)
+            {
+                MonitorInfo info = Monitors.GetMonitors()[0];
                 var area = info.ClientArea;
                 retval.WindowState = WindowState.Maximized;
                 retval.Location = area.Min;
@@ -40,8 +36,10 @@ namespace SkiaGame.App
             return retval;
         }
 
-        private static GameWindowSettings GetDefaultDWS(){
-            return new GameWindowSettings{
+        private static GameWindowSettings GetDefaultDWS()
+        {
+            return new GameWindowSettings
+            {
                 RenderFrequency = 60.0,
                 UpdateFrequency = 60.0
             };
@@ -59,51 +57,50 @@ namespace SkiaGame.App
             base.OnResize(e);
         }
 
-	protected override void OnRenderFrame(FrameEventArgs args)
+        protected override void OnRenderFrame(FrameEventArgs args)
         {
 
-	    if (KeyboardState.IsKeyDown(Keys.Escape)) {
-		
-	    }
+            if (KeyboardState.IsKeyDown(Keys.Escape))
+            {
+
+            }
             SkiaRender((float)args.Time);
             SwapBuffers();
         }
 
-	StringBuilder text = new StringBuilder();
-	protected override void OnTextInput(TextInputEventArgs args) {
-	    text.Append(args.AsString);
-	}
-
         GRContext? skiaCtx = null;
         SKSurface? skSurface = null;
 
-        private void SkiaInit(){
+        private void SkiaInit()
+        {
             skiaCtx = GRContext.CreateGl();
-            SkiaResize(WindowWidth,WindowHeight);
-
-	    StringBuilder text = new StringBuilder();
+            SkiaResize(WindowWidth, WindowHeight);
         }
 
-        private void SkiaCleanUp(){
+        private void SkiaCleanUp()
+        {
             skiaCtx?.Dispose();
             skSurface?.Dispose();
         }
 
-        private void SkiaResize(int w, int h){
+        private void SkiaResize(int w, int h)
+        {
+	    Console.WriteLine("W: {0}, H: {1}", w, h);
             GL.Viewport(0, 0, WindowWidth, WindowHeight);
             WindowWidth = w;
             WindowHeight = h;
 
-            if(skiaCtx == null) SkiaInit();
+            if (skiaCtx == null) SkiaInit();
 
             GRGlFramebufferInfo fbi = new GRGlFramebufferInfo(0, (uint)InternalFormat.Rgba8);
             var ctype = SKColorType.Rgba8888;
-            var beTarget = new GRBackendRenderTarget(w,h,0,0,fbi);
+            var beTarget = new GRBackendRenderTarget(w, h, 0, 0, fbi);
 
             // Dispose Previous Surface
             skSurface?.Dispose();
             skSurface = SKSurface.Create(skiaCtx, beTarget, GRSurfaceOrigin.BottomLeft, ctype, null, null);
-            if(skSurface == null){
+            if (skSurface == null)
+            {
                 Close();
             }
         }
@@ -114,30 +111,35 @@ namespace SkiaGame.App
             base.OnUnload();
         }
 
-        private void SkiaRender(float time){
+        private void SkiaRender(float time)
+        {
             var ctx = skSurface?.Canvas;
-	    
+
             ctx?.DrawColor(SKColors.White, SKBlendMode.Src);
 
-	    var paint = new SKPaint();
-	    paint.TextSize = 50;
-	    paint.Color = SKColors.Black;
-	    paint.Typeface = SKTypeface.FromFamilyName(
-		"Arial", 
-		SKFontStyleWeight.Bold, 
-		SKFontStyleWidth.Normal, 
-		SKFontStyleSlant.Italic);
-	    ctx?.DrawText(text.ToString(), 1, 1, paint);
+            var paint = new SKPaint();
+            paint.TextSize = 50;
+            paint.Color = SKColors.Black;
+            paint.Typeface = SKTypeface.FromFamilyName(
+            "Arial",
+            SKFontStyleWeight.Bold,
+            SKFontStyleWidth.Normal,
+            SKFontStyleSlant.Italic);
+            ctx?.DrawText("Fancy text", 50, 50, paint);
 
-	    skiaCtx?.Flush();
+            skiaCtx?.Flush();
         }
 
         static void Main(string[] args)
         {
-            using(var prg = new SkiaGameWindow()){
-                try{
+            using (var prg = new SkiaGameWindow())
+            {
+                try
+                {
                     prg.Run();
-                }catch(Exception e){
+                }
+                catch (Exception e)
+                {
                     Console.WriteLine(e);
                 }
             }
