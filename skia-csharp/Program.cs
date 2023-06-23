@@ -54,7 +54,7 @@ namespace SkiaGame.App
             base.OnLoad();
 	    skiaCtx = GRContext.CreateGl();
 
-	    text = new StringBuilder();
+	    text = new StringBuilder("안영");
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -111,8 +111,15 @@ namespace SkiaGame.App
             var paint = new SKPaint();
             paint.TextSize = 50;
             paint.Color = SKColors.Black;
-            paint.Typeface = SKTypeface.FromFamilyName("Arial");
+            //paint.Typeface = SKTypeface.FromFamilyName("Apple SD 산돌고딕 Neo");
+	    //paint.Typeface = SKTypeface.FromFile("IBMPlexSansKR-Regular.ttf");
+	    paint.Typeface = SKTypeface.FromFamilyName("Arial");
 	    paint.IsAntialias = true;
+	    foreach (var g in paint.GetGlyphs(text.ToString())) {
+		if (g == 0) {
+		    throw new System.Exception("text not renderable in font");		    
+		}
+	    }
             ctx?.DrawText(text.ToString(), 50, 50, paint);
 
             skiaCtx?.Flush();

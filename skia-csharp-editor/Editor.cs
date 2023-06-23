@@ -13,11 +13,13 @@ namespace Eddy {
     }
 
     class Editor {
-	List<StringBuilder> lines = new List<StringBuilder>{new StringBuilder()};
+	List<StringBuilder> lines = new List<StringBuilder>{new StringBuilder("안영")};
 	Cursor cursor = new Cursor();
 	int textSize = 60;
 	SKColor textColor = SKColors.Black;
 	SKColor backgroundColor = SKColors.White;
+	DateTime lastBlinkTime = DateTime.Now;
+	bool blink = true;
 
 	public void OnTextInput(String text) {
 	    var line = lines[cursor.Y];
@@ -75,7 +77,8 @@ namespace Eddy {
             var textPaint = new SKPaint();
             textPaint.TextSize = textSize;
             textPaint.Color = textColor;
-            textPaint.Typeface = SKTypeface.FromFile("static/Inter-Regular.ttf", 0);
+            //textPaint.Typeface = SKTypeface.FromFile("static/Inter-Regular.ttf", 0);
+	    textPaint.Typeface = SKTypeface.FromFamilyName("Apple SD 산돌고딕 Neo");
 	    textPaint.TextEncoding = SKTextEncoding.Utf8;
 	    textPaint.IsAntialias = true;
 
@@ -85,8 +88,9 @@ namespace Eddy {
 	    foreach (var line in lines) {
 		var s = line.ToString();
 		if (i == cursor.Y) {
-		    var shaper = new SkiaSharp.HarfBuzz.SKShaper(textPaint.Typeface);
-		    cursorWidth = shaper.Shape(s.Substring(0, cursor.X), textPaint).Width;
+		    //var shaper = new SkiaSharp.HarfBuzz.SKShaper(textPaint.Typeface);
+		    //cursorWidth = shaper.Shape(s.Substring(0, cursor.X), textPaint).Width;
+		    cursorWidth = textPaint.MeasureText(s.Substring(0, cursor.X));
 		}
 
 		i++;
@@ -94,7 +98,13 @@ namespace Eddy {
 		CanvasExtensions.DrawShapedText(canvas, s, 25, 25 + textSize * i + lineBuffer, textPaint);
 	    }
 
-	    if (DateTime.Now.Millisecond < 500) {
+	    var now = DateTime.Now;
+	    if (now > lastBlinkTime.AddMilliseconds(530)) {
+		lastBlinkTime = now;
+		blink = !blink;
+	    }
+
+	    if (blink) {
 		var x = 25 + cursorWidth;
 		var y = 25 + textSize * cursor.Y + cursor.Y * lineBufferSize;
 		var cursorRect = SKRect.Create(
