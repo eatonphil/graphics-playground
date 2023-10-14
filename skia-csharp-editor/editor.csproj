@@ -5,8 +5,12 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
-<PublishSingleFile>true</PublishSingleFile>
+<!--    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract> -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile> 
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
